@@ -145,18 +145,14 @@ No external component libraries, icon packs, or state management libraries were 
 
 ## AI Tools Used
 
-> *AI tools are permitted from Day 3 onwards. Usage is declared here per assessment instructions.*
 
-**Claude Code — Anthropic claude-sonnet-4-6** was used to:
-- Scaffold all project files (package.json, tsconfig, Tailwind and PostCSS config, Next.js config)
-- Generate the 15-entry `jobs.json` mock dataset with realistic Kenyan employer names, KES budgets, and relevant East African skills
-- Write all component and page code including the modal, form validation, error state, retry logic, and sorting
-- Apply semantic HTML5 refactoring across all components
-- Add accessibility attributes (`aria-*`, `role`, `aria-live`, focus management)
-- Write meaningful WHY comments throughout the codebase
-- Author this README
+**Claude Code — Anthropic claude-sonnet-4-6**:
+- Scaffold all project files
+- Generate the 15-entry `jobs.json` mock dataset
+- Write component and page code 
+- README
 
-All generated code was reviewed by the candidate and the architectural decisions reflect deliberate choices aligned with the assessment requirements.
+All generated code was reviewed
 
 ---
 
@@ -174,4 +170,3 @@ All generated code was reviewed by the candidate and the architectural decisions
 
 ---
 
-*Homeland Ecosystem Hub · Technology · Business · Innovation · www.homelandhub.org*
