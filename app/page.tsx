@@ -38,7 +38,17 @@ interface ErrorBannerProps {
 
 function ErrorBanner({ message, onRetry, retrying }: ErrorBannerProps) {
   return (
-    <div className="col-span-full flex flex-col items-center justify-center py-20 px-4 text-center">
+    /*
+     * role="alert" + aria-live="assertive" causes screen readers to announce
+     * this error immediately when it appears, without requiring the user to
+     * navigate to it first. Critical for users who cannot see the visual change.
+     */
+    <section
+      role="alert"
+      aria-live="assertive"
+      aria-label="Error loading jobs"
+      className="col-span-full flex flex-col items-center justify-center py-20 px-4 text-center"
+    >
       {/* Icon */}
       <div className="w-20 h-20 rounded-full bg-red-50 flex items-center justify-center mb-5">
         <svg
@@ -95,7 +105,7 @@ function ErrorBanner({ message, onRetry, retrying }: ErrorBannerProps) {
           </>
         )}
       </button>
-    </div>
+    </section>
   );
 }
 

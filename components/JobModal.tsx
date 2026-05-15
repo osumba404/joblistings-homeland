@@ -61,20 +61,21 @@ function validate(values: FormValues): FormErrors {
   return errors;
 }
 
-// ─── Star Rating display ──────────────────────────────────────────────────────
+// ─── Star Rating ──────────────────────────────────────────────────────────────
 
 function StarRating({ rating }: { rating: number }) {
   const full = Math.floor(rating);
   const hasHalf = rating - full >= 0.5;
   return (
-    <span className="flex items-center gap-0.5" aria-label={`${rating} out of 5 stars`}>
+    <span className="flex items-center gap-0.5" aria-label={`Employer rated ${rating} out of 5 stars`}>
       {[1, 2, 3, 4, 5].map((i) => {
         const filled = i <= full;
         const half = !filled && hasHalf && i === full + 1;
         return (
           <svg
             key={i}
-            className={`w-3.5 h-3.5 ${filled ? "text-[#F9A825]" : half ? "text-[#F9A825]" : "text-gray-300"}`}
+            aria-hidden="true"
+            className={`w-3.5 h-3.5 ${filled || half ? "text-[#F9A825]" : "text-gray-300"}`}
             fill={filled || half ? "currentColor" : "none"}
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -84,7 +85,7 @@ function StarRating({ rating }: { rating: number }) {
           </svg>
         );
       })}
-      <span className="text-xs text-gray-500 ml-1 font-medium">{rating.toFixed(1)}</span>
+      <span className="text-xs text-gray-500 ml-1 font-medium" aria-hidden="true">{rating.toFixed(1)}</span>
     </span>
   );
 }
@@ -96,8 +97,8 @@ interface FieldProps {
   label: string;
   optional?: boolean;
   error?: string;
-  children: React.ReactNode;
   hint?: string;
+  children: React.ReactNode;
 }
 
 function Field({ id, label, optional, error, hint, children }: FieldProps) {
@@ -105,15 +106,13 @@ function Field({ id, label, optional, error, hint, children }: FieldProps) {
     <div className="flex flex-col gap-1">
       <label htmlFor={id} className="text-sm font-semibold text-gray-800 flex items-center gap-1.5">
         {label}
-        {optional && (
-          <span className="text-xs font-normal text-gray-400">(optional)</span>
-        )}
+        {optional && <span className="text-xs font-normal text-gray-400">(optional)</span>}
       </label>
       {hint && <p className="text-xs text-gray-400 -mt-0.5">{hint}</p>}
       {children}
       {error && (
         <p role="alert" className="text-xs text-red-600 flex items-center gap-1 mt-0.5">
-          <svg className="w-3 h-3 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+          <svg className="w-3 h-3 shrink-0" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
             <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
           </svg>
           {error}
@@ -135,37 +134,43 @@ const inputClass = (hasError: boolean) =>
 
 function ConfirmationState({ job, onClose }: { job: Job; onClose: () => void }) {
   return (
-    <div className="flex flex-col items-center justify-center h-full py-10 text-center gap-5">
-      <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center">
+    <section
+      aria-label="Proposal submitted successfully"
+      className="flex flex-col items-center justify-center h-full py-10 text-center gap-5"
+    >
+      <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center" aria-hidden="true">
         <svg className="w-8 h-8 text-[#2E7D32]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
         </svg>
       </div>
+
       <div>
         <h3 className="text-lg font-bold text-gray-900 mb-1">Proposal Submitted!</h3>
         <p className="text-sm text-gray-500 max-w-xs">
           Your proposal for{" "}
-          <span className="font-semibold text-gray-700">{job.title}</span> has been sent
-          to <span className="font-semibold text-gray-700">{job.employer}</span>.
+          <strong className="font-semibold text-gray-700">{job.title}</strong> has been
+          sent to <strong className="font-semibold text-gray-700">{job.employer}</strong>.
         </p>
       </div>
-      <div className="bg-gray-50 rounded-xl p-4 w-full text-left space-y-1">
-        <p className="text-xs text-gray-500">What happens next?</p>
-        <ul className="text-sm text-gray-600 space-y-1">
+
+      <div className="bg-gray-50 rounded-xl p-4 w-full text-left">
+        <p className="text-xs text-gray-500 mb-2">What happens next?</p>
+        <ol className="text-sm text-gray-600 space-y-1 list-none p-0 m-0">
           <li className="flex items-start gap-2">
-            <span className="text-[#2E7D32] font-bold mt-0.5">1.</span>
+            <span className="text-[#2E7D32] font-bold mt-0.5" aria-hidden="true">1.</span>
             The employer reviews your proposal within 3 business days.
           </li>
           <li className="flex items-start gap-2">
-            <span className="text-[#2E7D32] font-bold mt-0.5">2.</span>
+            <span className="text-[#2E7D32] font-bold mt-0.5" aria-hidden="true">2.</span>
             You will be notified by email if shortlisted.
           </li>
           <li className="flex items-start gap-2">
-            <span className="text-[#2E7D32] font-bold mt-0.5">3.</span>
+            <span className="text-[#2E7D32] font-bold mt-0.5" aria-hidden="true">3.</span>
             A contract is issued upon mutual agreement.
           </li>
-        </ul>
+        </ol>
       </div>
+
       <button
         onClick={onClose}
         className="px-6 py-2.5 rounded-lg bg-[#2E7D32] text-white font-semibold text-sm
@@ -174,7 +179,7 @@ function ConfirmationState({ job, onClose }: { job: Job; onClose: () => void }) 
       >
         Back to Jobs
       </button>
-    </div>
+    </section>
   );
 }
 
@@ -192,31 +197,28 @@ interface ProposalFormProps {
   onSubmit: (e: React.FormEvent) => void;
 }
 
-function ProposalForm({
-  job,
-  form,
-  visibleErrors,
-  submitting,
-  onChange,
-  onBlur,
-  onSubmit,
-}: ProposalFormProps) {
+function ProposalForm({ job, form, visibleErrors, submitting, onChange, onBlur, onSubmit }: ProposalFormProps) {
   const charCount = form.coverLetter.trim().length;
   const charOk = charCount >= 100;
 
   return (
+    /*
+     * noValidate disables browser-native validation popups so our own inline
+     * error messages are the single source of truth. Native tooltips are
+     * visually inconsistent across browsers and cannot be styled to match
+     * the design system.
+     */
     <form onSubmit={onSubmit} noValidate className="flex flex-col gap-5">
       <div>
         <h3 className="text-base font-bold text-gray-900">Submit Your Proposal</h3>
         <p className="text-xs text-gray-400 mt-0.5">
           Budget up to{" "}
-          <span className="font-semibold text-[#E65100]">
+          <strong className="font-semibold text-[#E65100]">
             KES {job.budget.toLocaleString("en-KE")}
-          </span>
+          </strong>
         </p>
       </div>
 
-      {/* Cover Letter */}
       <Field
         id="cover-letter"
         label="Cover Letter"
@@ -231,12 +233,12 @@ function ProposalForm({
             value={form.coverLetter}
             onChange={(e) => onChange("coverLetter", e.target.value)}
             onBlur={() => onBlur("coverLetter")}
-            aria-describedby={visibleErrors.coverLetter ? "cover-letter-error" : undefined}
             aria-invalid={!!visibleErrors.coverLetter}
             placeholder="Describe your relevant experience and why you're a great fit..."
             className={`${inputClass(!!visibleErrors.coverLetter)} resize-none`}
           />
           <span
+            aria-live="polite"
             className={`absolute bottom-2 right-3 text-xs font-medium tabular-nums
               ${charOk ? "text-[#2E7D32]" : charCount > 0 ? "text-orange-500" : "text-gray-400"}`}
           >
@@ -245,14 +247,9 @@ function ProposalForm({
         </div>
       </Field>
 
-      {/* Proposed Budget */}
-      <Field
-        id="proposed-budget"
-        label="Your Proposed Budget (KES)"
-        error={visibleErrors.proposedBudget}
-      >
+      <Field id="proposed-budget" label="Your Proposed Budget (KES)" error={visibleErrors.proposedBudget}>
         <div className="relative">
-          <span className="absolute inset-y-0 left-3 flex items-center text-gray-400 text-sm pointer-events-none">
+          <span className="absolute inset-y-0 left-3 flex items-center text-gray-400 text-sm pointer-events-none" aria-hidden="true">
             KES
           </span>
           <input
@@ -270,12 +267,7 @@ function ProposalForm({
         </div>
       </Field>
 
-      {/* Timeline */}
-      <Field
-        id="timeline"
-        label="Your Proposed Timeline (days)"
-        error={visibleErrors.timeline}
-      >
+      <Field id="timeline" label="Your Proposed Timeline (days)" error={visibleErrors.timeline}>
         <div className="relative">
           <input
             id="timeline"
@@ -290,13 +282,12 @@ function ProposalForm({
             placeholder="e.g. 21"
             className={`${inputClass(!!visibleErrors.timeline)} pr-14`}
           />
-          <span className="absolute inset-y-0 right-3 flex items-center text-gray-400 text-xs pointer-events-none">
+          <span className="absolute inset-y-0 right-3 flex items-center text-gray-400 text-xs pointer-events-none" aria-hidden="true">
             days
           </span>
         </div>
       </Field>
 
-      {/* Portfolio URL */}
       <Field
         id="portfolio-url"
         label="Portfolio / Work Samples URL"
@@ -317,7 +308,6 @@ function ProposalForm({
         />
       </Field>
 
-      {/* Submit */}
       <button
         type="submit"
         disabled={submitting}
@@ -329,7 +319,7 @@ function ProposalForm({
       >
         {submitting ? (
           <>
-            <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24" aria-hidden="true">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
             </svg>
@@ -362,20 +352,24 @@ export default function JobModal({ job, onClose }: JobModalProps) {
 
   const errors = validate(form);
 
-  // Only show errors for touched fields (or all fields after submit attempt)
+  // Errors are only shown for fields the user has already interacted with,
+  // preventing a wall of red on first open. All errors reveal on submit.
   const visibleErrors: FormErrors = {};
   (Object.keys(errors) as (keyof FormErrors)[]).forEach((key) => {
     if (touched[key]) visibleErrors[key] = errors[key];
   });
 
-  // Lock body scroll while modal is open
   useEffect(() => {
+    /*
+     * Locking body scroll prevents the background page from scrolling while
+     * the modal is open. On Safari, `position: fixed` alone does not stop
+     * body scroll, so we must set overflow:hidden imperatively.
+     */
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => { document.body.style.overflow = prev; };
   }, []);
 
-  // Escape key to close
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -384,15 +378,19 @@ export default function JobModal({ job, onClose }: JobModalProps) {
     return () => window.removeEventListener("keydown", handler);
   }, [onClose]);
 
-  // Focus the close button on mount
+  // Move focus into the modal on open so keyboard users don't stay on the card behind it
   useEffect(() => {
     closeButtonRef.current?.focus();
   }, []);
 
-  // Focus trap — cycle Tab/Shift+Tab within the panel
   useEffect(() => {
     const panel = panelRef.current;
     if (!panel) return;
+    /*
+     * Focus trap: WCAG 2.1 SC 2.1.2 requires that keyboard focus does not
+     * leave a modal dialog while it is open. Without this, Tab would move
+     * focus to the invisible page content behind the overlay.
+     */
     const handler = (e: KeyboardEvent) => {
       if (e.key !== "Tab") return;
       const focusable = Array.from(
@@ -429,11 +427,10 @@ export default function JobModal({ job, onClose }: JobModalProps) {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    // Reveal all errors on submit attempt
     setTouched({ coverLetter: true, proposedBudget: true, timeline: true, portfolioUrl: true });
     if (Object.keys(errors).length > 0) return;
     setSubmitting(true);
-    await new Promise((r) => setTimeout(r, 1200)); // mock API
+    await new Promise((r) => setTimeout(r, 1200)); // mock API delay
     setSubmitting(false);
     setSubmitted(true);
   }
@@ -456,16 +453,13 @@ export default function JobModal({ job, onClose }: JobModalProps) {
         ref={panelRef}
         className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[92vh] flex flex-col overflow-hidden"
       >
-        {/* ── Modal header ── */}
-        <div className="flex items-start gap-4 px-6 py-4 border-b border-gray-100 shrink-0">
+        {/* Modal header — <header> is correct here as it heads the dialog section */}
+        <header className="flex items-start gap-4 px-6 py-4 border-b border-gray-100 shrink-0">
           <div className="flex-1 min-w-0">
             <span className="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold bg-green-50 text-[#2E7D32] border border-green-200 mb-1.5">
               {job.category}
             </span>
-            <h2
-              id="modal-job-title"
-              className="text-base sm:text-lg font-bold text-gray-900 leading-snug"
-            >
+            <h2 id="modal-job-title" className="text-base sm:text-lg font-bold text-gray-900 leading-snug">
               {job.title}
             </h2>
           </div>
@@ -476,88 +470,98 @@ export default function JobModal({ job, onClose }: JobModalProps) {
             className="shrink-0 p-2 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100
                        transition-colors focus:outline-none focus:ring-2 focus:ring-[#2E7D32]"
           >
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
-        </div>
+        </header>
 
-        {/* ── Scrollable body ── */}
+        {/* Scrollable content body */}
         <div className="overflow-y-auto flex-1">
           <div className="grid grid-cols-1 lg:grid-cols-2 lg:divide-x divide-gray-100">
 
-            {/* ── Left: Job details ── */}
-            <div className="p-6 space-y-5 border-b lg:border-b-0 border-gray-100">
-
-              {/* Employer card */}
-              <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
-                <div className="w-11 h-11 rounded-xl bg-[#2E7D32] flex items-center justify-center shrink-0 text-white font-bold text-sm">
+            {/* ── Left column: job details ── */}
+            <section
+              aria-label="Job details"
+              className="p-6 space-y-5 border-b lg:border-b-0 border-gray-100"
+            >
+              {/* Employer info — <address> is appropriate inside <article>/<section> to
+                  represent the contact/authorship entity for this content block */}
+              <address className="not-italic flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+                <div className="w-11 h-11 rounded-xl bg-[#2E7D32] flex items-center justify-center shrink-0 text-white font-bold text-sm" aria-hidden="true">
                   {job.employer.slice(0, 2).toUpperCase()}
                 </div>
                 <div className="min-w-0">
                   <p className="font-bold text-gray-900 text-sm leading-tight">{job.employer}</p>
                   <StarRating rating={job.employerRating} />
                   <p className="text-xs text-gray-400 mt-1">
-                    {job.proposals} proposals · Posted {formatDate(job.postedDate)}
+                    {job.proposals} proposals · Posted{" "}
+                    <time dateTime={job.postedDate}>{formatDate(job.postedDate)}</time>
                   </p>
                 </div>
-              </div>
+              </address>
 
-              {/* Key details grid */}
-              <div className="grid grid-cols-2 gap-3">
+              {/*
+               * <dl> (description list) is the correct semantic element for
+               * key-value metadata like Budget/Amount and Deadline/Date —
+               * more meaningful than a grid of generic <div> elements.
+               */}
+              <dl className="grid grid-cols-2 gap-3">
                 <div className="bg-orange-50 rounded-xl p-3 border border-orange-100">
-                  <p className="text-xs text-gray-500 mb-0.5 flex items-center gap-1">
-                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <dt className="text-xs text-gray-500 mb-0.5 flex items-center gap-1">
+                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     Budget
-                  </p>
-                  <p className="font-bold text-[#E65100] text-sm">{formatBudget(job.budget)}</p>
+                  </dt>
+                  <dd className="font-bold text-[#E65100] text-sm">{formatBudget(job.budget)}</dd>
                 </div>
+
                 <div className="bg-blue-50 rounded-xl p-3 border border-blue-100">
-                  <p className="text-xs text-gray-500 mb-0.5 flex items-center gap-1">
-                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <dt className="text-xs text-gray-500 mb-0.5 flex items-center gap-1">
+                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
                     Deadline
-                  </p>
-                  <p className="font-bold text-blue-700 text-sm">{formatDate(job.deadline)}</p>
+                  </dt>
+                  <dd className="font-bold text-blue-700 text-sm">
+                    <time dateTime={job.deadline}>{formatDate(job.deadline)}</time>
+                  </dd>
                 </div>
+
                 <div className="bg-gray-50 rounded-xl p-3 border border-gray-200 col-span-2">
-                  <p className="text-xs text-gray-500 mb-0.5 flex items-center gap-1">
-                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <dt className="text-xs text-gray-500 mb-0.5 flex items-center gap-1">
+                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                     </svg>
                     Location
-                  </p>
-                  <p className="font-bold text-gray-800 text-sm">{job.location}</p>
+                  </dt>
+                  <dd className="font-bold text-gray-800 text-sm">{job.location}</dd>
                 </div>
-              </div>
+              </dl>
 
-              {/* Full description */}
-              <div>
-                <h3 className="text-sm font-bold text-gray-900 mb-2">About This Job</h3>
+              <section aria-labelledby="about-heading">
+                <h3 id="about-heading" className="text-sm font-bold text-gray-900 mb-2">About This Job</h3>
                 <p className="text-sm text-gray-600 leading-relaxed">{job.description}</p>
-              </div>
+              </section>
 
-              {/* Skills */}
-              <div>
-                <h3 className="text-sm font-bold text-gray-900 mb-2">Skills Required</h3>
-                <div className="flex flex-wrap gap-2">
+              <section aria-labelledby="skills-heading">
+                <h3 id="skills-heading" className="text-sm font-bold text-gray-900 mb-2">Skills Required</h3>
+                <ul className="flex flex-wrap gap-2 list-none p-0 m-0">
                   {job.skills.map((skill) => (
-                    <span
+                    <li
                       key={skill}
                       className="px-3 py-1 rounded-full text-xs font-semibold bg-green-50 text-[#2E7D32] border border-green-200"
                     >
                       {skill}
-                    </span>
+                    </li>
                   ))}
-                </div>
-              </div>
-            </div>
+                </ul>
+              </section>
+            </section>
 
-            {/* ── Right: Proposal form / confirmation ── */}
-            <div className="p-6">
+            {/* ── Right column: proposal form or confirmation ── */}
+            <section aria-label="Submit your proposal" className="p-6">
               {submitted ? (
                 <ConfirmationState job={job} onClose={onClose} />
               ) : (
@@ -573,7 +577,7 @@ export default function JobModal({ job, onClose }: JobModalProps) {
                   onSubmit={handleSubmit}
                 />
               )}
-            </div>
+            </section>
           </div>
         </div>
       </div>
