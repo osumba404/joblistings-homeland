@@ -237,8 +237,10 @@ export default function JobsPage() {
     <div className="min-h-screen bg-gray-50">
       <Header />
 
-      {/* Hero banner */}
-      <div className="bg-gradient-to-br from-[#1B5E20] via-[#2E7D32] to-[#388E3C] text-white">
+      {/* Hero banner — <section> rather than <div> because this is a distinct,
+          labelled region of the page that deserves its own landmark in the
+          document outline and assistive technology rotor/menu. */}
+      <section aria-label="Job search" className="bg-gradient-to-br from-[#1B5E20] via-[#2E7D32] to-[#388E3C] text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
           <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold mb-2 leading-tight">
             Find Your Next Opportunity
@@ -277,10 +279,10 @@ export default function JobsPage() {
             )}
           </div>
         </div>
-      </div>
+      </section>
 
       {/* Filters row */}
-      <div className="bg-white border-b border-gray-200 shadow-sm">
+      <section aria-label="Filter and sort jobs" className="bg-white border-b border-gray-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
             <span className="text-sm font-semibold text-gray-500 hidden sm:block shrink-0">
