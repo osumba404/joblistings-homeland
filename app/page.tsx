@@ -126,17 +126,22 @@ export default function JobsPage() {
 
   // ── Data loading — retryable ──────────────────────────────────────────────
   useEffect(() => {
+    /*
+     * The `cancelled` flag prevents a stale async callback from calling
+     * setState after the component has unmounted or the effect has been
+     * cleaned up by a second fire (e.g., React StrictMode double-invoke).
+     * Without it, the app can show stale data or trigger React warnings.
+     */
     let cancelled = false;
     setLoading(true);
     setError(null);
 
     const run = async () => {
-      // Simulate 1.5s network delay
-      await new Promise((r) => setTimeout(r, 1500));
+      await new Promise((r) => setTimeout(r, 1500)); // simulate network latency
       if (cancelled) return;
 
       // First attempt fails to demonstrate the error state.
-      // Every subsequent attempt (Retry) succeeds.
+      // Every subsequent attempt (Retry) succeeds with real data.
       if (SIMULATE_INITIAL_ERROR && loadAttempt === 0) {
         throw new Error("GET /api/jobs — 503 Service Unavailable");
       }
@@ -157,6 +162,12 @@ export default function JobsPage() {
     return () => { cancelled = true; };
   }, [loadAttempt]);
 
+  /*
+   * Incrementing an integer rather than toggling a boolean lets the same
+   * useEffect dependency cleanly trigger on every retry without needing to
+   * reset a flag — the effect re-runs whenever loadAttempt changes.
+   */
+
   const handleRetry = useCallback(() => {
     setLoadAttempt((n) => n + 1);
   }, []);
@@ -172,6 +183,12 @@ export default function JobsPage() {
     return ["All Locations", ...unique];
   }, [allJobs]);
 
+  /*
+   * Filter and sort are combined in a single useMemo so the sort always
+   * operates on the already-filtered subset. Separating them into two memos
+   * would risk sorting the full allJobs list if the dependencies ever drifted
+   * out of sync, producing incorrect results silently.
+   */
   // ── Filter then sort in one pass ──────────────────────────────────────────
   const displayedJobs = useMemo(() => {
     const selectedRange =
@@ -333,7 +350,7 @@ export default function JobsPage() {
             )}
           </div>
         </div>
-      </div>
+      </section>
 
       {/* Results area */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
