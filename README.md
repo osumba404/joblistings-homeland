@@ -1,9 +1,5 @@
 # Homeland Jobs — Job Listings Page
 
-**Candidate:** Evans Osumba | **ID:** HEH/DK1/009
-**Assessment:** Day 3 — Frontend Practical Build
-**Submitted:** May 2026
-
 ---
 
 ## Overview
@@ -127,21 +123,6 @@ No external component libraries, icon packs, or state management libraries were 
 
 ---
 
-## Semantic HTML5 — Element Usage
-
-| Element | Where used | Why |
-|---|---|---|
-| `<header>` | Site header, modal dialog header | Landmark for page/section header |
-| `<nav>` + `<ul>`/`<li>` | Desktop and mobile navigation | Proper list semantics for navigation links |
-| `<main>` | Job grid area | Primary page content landmark |
-| `<footer>` | Site footer | Landmark for page footer |
-| `<article>` | Each job card, skeleton card | Self-contained distributable content |
-| `<section>` | Hero, filters, job detail panels, empty state, error state | Named content regions |
-| `<address>` | Employer name in card and modal | Contact/authorship info for the article |
-| `<time dateTime>` | Posted date on cards; deadline in modal | Machine-readable date for browsers and screen readers |
-| `<dl>` / `<dt>` / `<dd>` | Budget, deadline, location in modal | Semantic key-value metadata pairs |
-
----
 
 ## AI Tools Used
 
@@ -156,7 +137,7 @@ All generated code was reviewed
 
 ---
 
-## Known Limitations
+## Limitations
 
 | Limitation | Reason / Workaround |
 |---|---|
