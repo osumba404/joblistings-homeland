@@ -1,4 +1,4 @@
-# Homeland Jobs — Job Listings Page
+# Homeland Jobs - Job Listings Page
 
 ---
 
@@ -35,9 +35,6 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-> **Demo note:** `SIMULATE_INITIAL_ERROR = true` is set at the top of `app/page.tsx`.
-> On first load you will see the error state. Click **Try Again** to load real data.
-> Set the flag to `false` to skip the error demo.
 
 ### 4. Build for production
 
@@ -127,7 +124,7 @@ No external component libraries, icon packs, or state management libraries were 
 ## AI Tools Used
 
 
-**Claude Code — Anthropic claude-sonnet-4-6**:
+**Claude Code - Anthropic claude-sonnet-4-6**:
 - Scaffold all project files
 - Generate the 15-entry `jobs.json` mock dataset
 - Write component and page code 
