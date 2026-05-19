@@ -2,7 +2,6 @@ require('dotenv').config();
 const request = require('supertest');
 const app = require('../src/app');
 
-// Use unique email per test run to avoid duplicate conflicts
 const timestamp = Date.now();
 const testEmail = `testuser_${timestamp}@gmail.com`;
 
@@ -13,11 +12,11 @@ describe('Auth API', () => {
     const res = await request(app)
       .post('/api/auth/register')
       .send({
-        name:     'Test User',
-        email:    testEmail,
-        phone:    '0712345678',
+        name: 'Test User',
+        email: testEmail,
+        phone: '0712345678',
         password: 'Password1',
-        role:     'freelancer',
+        role: 'freelancer',
       });
 
     expect(res.statusCode).toBe(201);
@@ -25,7 +24,7 @@ describe('Auth API', () => {
     expect(res.body.data.user).toBeDefined();
     expect(res.body.data.user.email).toBe(testEmail);
     expect(res.body.data.user.role).toBe('freelancer');
-    // Password must never appear in the response
+    // Password must never appear in the response for security reasons
     expect(res.body.data.user.password).toBeUndefined();
   });
 
@@ -34,7 +33,7 @@ describe('Auth API', () => {
     const res = await request(app)
       .post('/api/auth/login')
       .send({
-        email:    testEmail,
+        email: testEmail,
         password: 'WrongPassword9',
       });
 
@@ -56,13 +55,13 @@ describe('Auth API', () => {
       .post('/api/jobs')
       .set('Authorization', `Bearer ${token}`)
       .send({
-        title:       'Unauthorized Job Post',
+        title: 'Unauthorized Job Post',
         description: 'This should not be allowed.',
-        category:    'Web Development',
-        location:    'Nairobi',
-        budget:      10000,
-        skills:      ['Node.js'],
-        deadline:    '2026-12-01',
+        category: 'Web Development',
+        location: 'Nairobi',
+        budget: 10000,
+        skills: ['Node.js'],
+        deadline: '2026-12-01',
       });
 
     expect(res.statusCode).toBe(403);
