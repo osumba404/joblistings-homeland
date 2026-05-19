@@ -1,0 +1,437 @@
+{
+  "info": {
+    "name": "Homeland API",
+    "description": "Complete collection for Homeland Job Listings API — Auth, Jobs, Escrow",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:5000" },
+    { "key": "employer_token", "value": "" },
+    { "key": "freelancer_token", "value": "" },
+    { "key": "employer_refresh", "value": "" },
+    { "key": "job_id", "value": "1" },
+    { "key": "proposal_id", "value": "1" },
+    { "key": "contract_id", "value": "1" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register - Employer",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/api/auth/register", "host": ["{{base_url}}"], "path": ["api","auth","register"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Tech Kenya\",\n  \"email\": \"employer@techke.com\",\n  \"phone\": \"0712345678\",\n  \"password\": \"Password1\",\n  \"role\": \"employer\"\n}"
+            }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "pm.test('Status 201', () => pm.response.to.have.status(201));",
+              "pm.test('Has user object, no password', () => { const j = pm.response.json(); pm.expect(j.success).to.be.true; pm.expect(j.data.user).to.not.have.property('password'); });"
+            ]}
+          }]
+        },
+        {
+          "name": "Register - Freelancer",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/api/auth/register", "host": ["{{base_url}}"], "path": ["api","auth","register"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Evans Osumba\",\n  \"email\": \"osumba21@gmail.com\",\n  \"phone\": \"0723456789\",\n  \"password\": \"Password1\",\n  \"role\": \"freelancer\"\n}"
+            }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "pm.test('Status 201', () => pm.response.to.have.status(201));",
+              "pm.test('Role is freelancer', () => { const j = pm.response.json(); pm.expect(j.data.user.role).to.equal('freelancer'); });"
+            ]}
+          }]
+        },
+        {
+          "name": "Register - Validation Failure",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/api/auth/register", "host": ["{{base_url}}"], "path": ["api","auth","register"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"A\",\n  \"email\": \"not-an-email\",\n  \"phone\": \"123\",\n  \"password\": \"weak\",\n  \"role\": \"unknown\"\n}"
+            }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "pm.test('Status 422', () => pm.response.to.have.status(422));",
+              "pm.test('Has field errors', () => { const j = pm.response.json(); pm.expect(j.errors).to.be.an('array').with.length.above(0); });"
+            ]}
+          }]
+        },
+        {
+          "name": "Login - Employer",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/api/auth/login", "host": ["{{base_url}}"], "path": ["api","auth","login"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"employer@techke.com\",\n  \"password\": \"Password1\"\n}"
+            }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "pm.test('Has accessToken and refreshToken', () => { const j = pm.response.json(); pm.expect(j.data.accessToken).to.be.a('string'); pm.expect(j.data.refreshToken).to.be.a('string'); });",
+              "const j = pm.response.json(); if(j.data && j.data.accessToken) { pm.collectionVariables.set('employer_token', j.data.accessToken); pm.collectionVariables.set('employer_refresh', j.data.refreshToken); }"
+            ]}
+          }]
+        },
+        {
+          "name": "Login - Freelancer",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/api/auth/login", "host": ["{{base_url}}"], "path": ["api","auth","login"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"osumba21@gmail.com\",\n  \"password\": \"Password1\"\n}"
+            }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "const j = pm.response.json(); if(j.data && j.data.accessToken) { pm.collectionVariables.set('freelancer_token', j.data.accessToken); }"
+            ]}
+          }]
+        },
+        {
+          "name": "Login - Wrong Password (401)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/api/auth/login", "host": ["{{base_url}}"], "path": ["api","auth","login"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"employer@techke.com\",\n  \"password\": \"WrongPass1\"\n}"
+            }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "pm.test('Status 401', () => pm.response.to.have.status(401));",
+              "pm.test('Error message present', () => pm.expect(pm.response.json().success).to.be.false);"
+            ]}
+          }]
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/api/auth/refresh", "host": ["{{base_url}}"], "path": ["api","auth","refresh"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{employer_refresh}}\"\n}"
+            }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "pm.test('Returns new accessToken', () => pm.expect(pm.response.json().data.accessToken).to.be.a('string'));"
+            ]}
+          }]
+        },
+        {
+          "name": "Get Me - Authenticated",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{employer_token}}" }],
+            "url": { "raw": "{{base_url}}/api/auth/me", "host": ["{{base_url}}"], "path": ["api","auth","me"] }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "pm.test('No password in response', () => pm.expect(pm.response.json().data.user).to.not.have.property('password'));",
+              "pm.test('Email matches', () => pm.expect(pm.response.json().data.user.email).to.equal('employer@techke.com'));"
+            ]}
+          }]
+        },
+        {
+          "name": "Get Me - No Token (401)",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/api/auth/me", "host": ["{{base_url}}"], "path": ["api","auth","me"] }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "pm.test('Status 401', () => pm.response.to.have.status(401));"
+            ]}
+          }]
+        }
+      ]
+    },
+    {
+      "name": "Jobs",
+      "item": [
+        {
+          "name": "List Jobs",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/api/jobs", "host": ["{{base_url}}"], "path": ["api","jobs"] }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "pm.test('Has pagination', () => { const j = pm.response.json(); pm.expect(j.data.pagination).to.have.property('total'); });"
+            ]}
+          }]
+        },
+        {
+          "name": "List Jobs - Filtered",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/jobs?search=developer&category=Web Development&sort=budget_high&page=1&limit=5",
+              "host": ["{{base_url}}"],
+              "path": ["api","jobs"],
+              "query": [
+                { "key": "search", "value": "developer" },
+                { "key": "category", "value": "Web Development" },
+                { "key": "sort", "value": "budget_high" },
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "5" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Job - Employer",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{employer_token}}" }
+            ],
+            "url": { "raw": "{{base_url}}/api/jobs", "host": ["{{base_url}}"], "path": ["api","jobs"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Full-Stack Developer Needed\",\n  \"description\": \"We need a developer to build our e-commerce platform with payment integrations.\",\n  \"category\": \"Web Development\",\n  \"location\": \"Nairobi\",\n  \"budget\": 45000,\n  \"skills\": [\"Node.js\", \"React\", \"MySQL\"],\n  \"deadline\": \"2026-08-01\"\n}"
+            }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "pm.test('Status 201', () => pm.response.to.have.status(201));",
+              "pm.test('Job title matches', () => pm.expect(pm.response.json().data.job.title).to.equal('Full-Stack Developer Needed'));",
+              "const j = pm.response.json(); if(j.data && j.data.job) pm.collectionVariables.set('job_id', String(j.data.job.id));"
+            ]}
+          }]
+        },
+        {
+          "name": "Create Job - Freelancer Forbidden (403)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{freelancer_token}}" }
+            ],
+            "url": { "raw": "{{base_url}}/api/jobs", "host": ["{{base_url}}"], "path": ["api","jobs"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Unauthorized Job\",\n  \"description\": \"This should be blocked.\",\n  \"category\": \"Web Development\",\n  \"location\": \"Nairobi\",\n  \"budget\": 10000,\n  \"skills\": [\"Node.js\"],\n  \"deadline\": \"2026-08-01\"\n}"
+            }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "pm.test('Status 403', () => pm.response.to.have.status(403));",
+              "pm.test('Access denied message', () => pm.expect(pm.response.json().success).to.be.false);"
+            ]}
+          }]
+        },
+        {
+          "name": "Get Job by ID",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/api/jobs/{{job_id}}", "host": ["{{base_url}}"], "path": ["api","jobs","{{job_id}}"] }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "pm.test('Has proposal_count', () => pm.expect(pm.response.json().data.job).to.have.property('proposal_count'));"
+            ]}
+          }]
+        },
+        {
+          "name": "Submit Proposal - Freelancer",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{freelancer_token}}" }
+            ],
+            "url": { "raw": "{{base_url}}/api/jobs/{{job_id}}/proposals", "host": ["{{base_url}}"], "path": ["api","jobs","{{job_id}}","proposals"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cover_letter\": \"I have 5 years of experience building e-commerce platforms with Node.js and React. I have successfully delivered similar projects for clients across East Africa.\",\n  \"proposed_budget\": 40000,\n  \"timeline_days\": 30\n}"
+            }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "pm.test('Status 201', () => pm.response.to.have.status(201));",
+              "const j = pm.response.json(); if(j.data && j.data.proposal) pm.collectionVariables.set('proposal_id', String(j.data.proposal.id));"
+            ]}
+          }]
+        },
+        {
+          "name": "Submit Proposal - Duplicate (409)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{freelancer_token}}" }
+            ],
+            "url": { "raw": "{{base_url}}/api/jobs/{{job_id}}/proposals", "host": ["{{base_url}}"], "path": ["api","jobs","{{job_id}}","proposals"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cover_letter\": \"I have 5 years of experience building e-commerce platforms with Node.js and React. I have successfully delivered similar projects for clients across East Africa.\",\n  \"proposed_budget\": 40000,\n  \"timeline_days\": 30\n}"
+            }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "pm.test('Status 409 - Duplicate proposal blocked', () => pm.response.to.have.status(409));"
+            ]}
+          }]
+        },
+        {
+          "name": "Accept Proposal - Employer",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Authorization", "value": "Bearer {{employer_token}}" }],
+            "url": { "raw": "{{base_url}}/api/jobs/{{job_id}}/proposals/{{proposal_id}}/accept", "host": ["{{base_url}}"], "path": ["api","jobs","{{job_id}}","proposals","{{proposal_id}}","accept"] }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "pm.test('Contract created', () => pm.expect(pm.response.json().data.contract).to.have.property('id'));",
+              "const j = pm.response.json(); if(j.data && j.data.contract) pm.collectionVariables.set('contract_id', String(j.data.contract.id));"
+            ]}
+          }]
+        }
+      ]
+    },
+    {
+      "name": "Escrow",
+      "item": [
+        {
+          "name": "Fund Contract - Employer (Mock M-Pesa)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{employer_token}}" }],
+            "url": { "raw": "{{base_url}}/api/contracts/{{contract_id}}/fund", "host": ["{{base_url}}"], "path": ["api","contracts","{{contract_id}}","fund"] }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "pm.test('Has M-Pesa receipt', () => pm.expect(pm.response.json().data.mpesa_receipt).to.be.a('string').with.length(10));",
+              "pm.test('Status is funded', () => pm.expect(pm.response.json().data.status).to.equal('funded'));"
+            ]}
+          }]
+        },
+        {
+          "name": "Deliver - Freelancer",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{freelancer_token}}" }],
+            "url": { "raw": "{{base_url}}/api/contracts/{{contract_id}}/deliver", "host": ["{{base_url}}"], "path": ["api","contracts","{{contract_id}}","deliver"] }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "pm.test('Status is delivered', () => pm.expect(pm.response.json().data.status).to.equal('delivered'));"
+            ]}
+          }]
+        },
+        {
+          "name": "Approve & Release - Employer",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{employer_token}}" }],
+            "url": { "raw": "{{base_url}}/api/contracts/{{contract_id}}/approve", "host": ["{{base_url}}"], "path": ["api","contracts","{{contract_id}}","approve"] }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "pm.test('92% to freelancer', () => { const d = pm.response.json().data; pm.expect(d.freelancer_payout).to.equal(parseFloat((d.total_budget * 0.92).toFixed(2))); });",
+              "pm.test('8% platform fee', () => { const d = pm.response.json().data; pm.expect(d.platform_fee).to.equal(parseFloat((d.total_budget * 0.08).toFixed(2))); });",
+              "pm.test('Status is released', () => pm.expect(pm.response.json().data.status).to.equal('released'));"
+            ]}
+          }]
+        },
+        {
+          "name": "Dispute - Cannot dispute released contract (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{employer_token}}" }
+            ],
+            "url": { "raw": "{{base_url}}/api/contracts/{{contract_id}}/dispute", "host": ["{{base_url}}"], "path": ["api","contracts","{{contract_id}}","dispute"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"The deliverable did not meet the agreed specifications.\"\n}"
+            }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "pm.test('Status 400 - Cannot dispute released contract', () => pm.response.to.have.status(400));"
+            ]}
+          }]
+        },
+        {
+          "name": "Dispute - Active contract (funded/delivered)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{freelancer_token}}" }
+            ],
+            "url": { "raw": "{{base_url}}/api/contracts/{{contract_id}}/dispute", "host": ["{{base_url}}"], "path": ["api","contracts","{{contract_id}}","dispute"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Employer has been unresponsive for over a week and has not provided feedback.\"\n}"
+            }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "pm.test('Status is disputed', () => pm.expect(pm.response.json().data.status).to.equal('disputed'));"
+            ]}
+          }]
+        }
+      ]
+    }
+  ]
+}

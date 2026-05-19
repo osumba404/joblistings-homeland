@@ -148,3 +148,8 @@ All generated code was reviewed
 
 ---
 
+## Backend API
+
+The REST API powering authentication, jobs, proposals, and escrow is documented separately.
+
+→ [View Backend API README](backend/README.md)
