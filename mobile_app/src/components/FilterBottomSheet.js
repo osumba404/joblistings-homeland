@@ -8,17 +8,23 @@ import React, {
 } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
-import { colors, spacing, radius, font } from '../theme';
+import { useAppTheme } from '../context/ThemeContext';
 import { CATEGORIES, LOCATIONS } from '../data/jobs';
 
-function OptionPill({ label, selected, onPress }) {
+function OptionPill({ label, selected, onPress, colors }) {
   return (
     <TouchableOpacity
       onPress={() => onPress(label)}
-      style={[styles.pill, selected && styles.pillSelected]}
+      style={[
+        styles.pill,
+        { borderColor: colors.border, backgroundColor: colors.surface },
+        selected && { borderColor: colors.primary, backgroundColor: colors.primary },
+      ]}
       activeOpacity={0.75}
     >
-      <Text style={[styles.pillText, selected && styles.pillTextSelected]}>{label}</Text>
+      <Text style={[styles.pillText, { color: colors.textSecondary }, selected && { color: '#fff', fontWeight: '600' }]}>
+        {label}
+      </Text>
     </TouchableOpacity>
   );
 }
@@ -27,9 +33,9 @@ const FilterBottomSheet = forwardRef(function FilterBottomSheet(
   { selectedCategory, selectedLocation, onApply },
   ref
 ) {
+  const { colors } = useAppTheme();
   const bottomSheetRef = useRef(null);
   const snapPoints = useMemo(() => ['60%', '85%'], []);
-
   const [localCategory, setLocalCategory] = useState(selectedCategory);
   const [localLocation, setLocalLocation] = useState(selectedLocation);
 
@@ -62,45 +68,37 @@ const FilterBottomSheet = forwardRef(function FilterBottomSheet(
       index={-1}
       snapPoints={snapPoints}
       enablePanDownToClose
-      backgroundStyle={styles.sheetBg}
-      handleIndicatorStyle={styles.handle}
+      backgroundStyle={{ backgroundColor: colors.surface, borderTopLeftRadius: 20, borderTopRightRadius: 20 }}
+      handleIndicatorStyle={{ backgroundColor: colors.border, width: 40 }}
     >
       <BottomSheetView style={styles.content}>
-        <Text style={styles.sheetTitle}>Filter Jobs</Text>
+        <Text style={[styles.title, { color: colors.textPrimary }]}>Filter Jobs</Text>
 
-        <Text style={styles.sectionLabel}>Category</Text>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.pillRow}
-        >
+        <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>Category</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.pillRow}>
           {CATEGORIES.map((cat) => (
-            <OptionPill
-              key={cat}
-              label={cat}
-              selected={localCategory === cat}
-              onPress={setLocalCategory}
-            />
+            <OptionPill key={cat} label={cat} selected={localCategory === cat} onPress={setLocalCategory} colors={colors} />
           ))}
         </ScrollView>
 
-        <Text style={styles.sectionLabel}>Location</Text>
+        <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>Location</Text>
         <View style={styles.locationGrid}>
           {LOCATIONS.map((loc) => (
-            <OptionPill
-              key={loc}
-              label={loc}
-              selected={localLocation === loc}
-              onPress={setLocalLocation}
-            />
+            <OptionPill key={loc} label={loc} selected={localLocation === loc} onPress={setLocalLocation} colors={colors} />
           ))}
         </View>
 
         <View style={styles.actions}>
-          <TouchableOpacity style={styles.resetBtn} onPress={handleReset}>
-            <Text style={styles.resetText}>Reset</Text>
+          <TouchableOpacity
+            style={[styles.resetBtn, { borderColor: colors.border }]}
+            onPress={handleReset}
+          >
+            <Text style={[styles.resetText, { color: colors.textSecondary }]}>Reset</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.applyBtn} onPress={handleApply}>
+          <TouchableOpacity
+            style={[styles.applyBtn, { backgroundColor: colors.primary }]}
+            onPress={handleApply}
+          >
             <Text style={styles.applyText}>Apply Filters</Text>
           </TouchableOpacity>
         </View>
@@ -112,95 +110,39 @@ const FilterBottomSheet = forwardRef(function FilterBottomSheet(
 export default FilterBottomSheet;
 
 const styles = StyleSheet.create({
-  sheetBg: {
-    backgroundColor: colors.surface,
-    borderTopLeftRadius: radius.lg,
-    borderTopRightRadius: radius.lg,
-  },
-  handle: {
-    backgroundColor: colors.border,
-    width: 40,
-  },
-  content: {
-    flex: 1,
-    paddingHorizontal: spacing.md,
-    paddingBottom: spacing.xl,
-  },
-  sheetTitle: {
-    fontSize: 18,
-    ...font.bold,
-    color: colors.textPrimary,
-    marginBottom: spacing.md,
-    marginTop: spacing.xs,
-  },
+  content: { flex: 1, paddingHorizontal: 16, paddingBottom: 32 },
+  title: { fontSize: 18, fontWeight: '700', marginBottom: 16, marginTop: 4 },
   sectionLabel: {
     fontSize: 13,
-    ...font.semibold,
-    color: colors.textSecondary,
+    fontWeight: '600',
     textTransform: 'uppercase',
     letterSpacing: 0.8,
-    marginBottom: spacing.sm,
-    marginTop: spacing.md,
+    marginBottom: 8,
+    marginTop: 16,
   },
-  pillRow: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-    paddingBottom: spacing.xs,
-  },
-  locationGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.sm,
-  },
+  pillRow: { flexDirection: 'row', gap: 8, paddingBottom: 4 },
+  locationGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   pill: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    borderRadius: radius.full,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 999,
     borderWidth: 1.5,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
   },
-  pillSelected: {
-    borderColor: colors.primary,
-    backgroundColor: colors.primary,
-  },
-  pillText: {
-    fontSize: 13,
-    color: colors.textSecondary,
-    ...font.medium,
-  },
-  pillTextSelected: {
-    color: '#fff',
-    ...font.semibold,
-  },
-  actions: {
-    flexDirection: 'row',
-    gap: spacing.md,
-    marginTop: spacing.xl,
-  },
+  pillText: { fontSize: 13, fontWeight: '500' },
+  actions: { flexDirection: 'row', gap: 16, marginTop: 32 },
   resetBtn: {
     flex: 1,
-    paddingVertical: spacing.md,
-    borderRadius: radius.md,
+    paddingVertical: 14,
+    borderRadius: 12,
     borderWidth: 1.5,
-    borderColor: colors.border,
     alignItems: 'center',
   },
-  resetText: {
-    fontSize: 15,
-    color: colors.textSecondary,
-    ...font.semibold,
-  },
+  resetText: { fontSize: 15, fontWeight: '600' },
   applyBtn: {
     flex: 2,
-    paddingVertical: spacing.md,
-    borderRadius: radius.md,
-    backgroundColor: colors.primary,
+    paddingVertical: 14,
+    borderRadius: 12,
     alignItems: 'center',
   },
-  applyText: {
-    fontSize: 15,
-    color: '#fff',
-    ...font.semibold,
-  },
+  applyText: { fontSize: 15, color: '#fff', fontWeight: '600' },
 });

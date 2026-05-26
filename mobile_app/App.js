@@ -1,29 +1,40 @@
 import 'react-native-gesture-handler';
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import JobFeedScreen from './src/screens/JobFeedScreen';
-import JobDetailScreen from './src/screens/JobDetailScreen';
-import { colors } from './src/theme';
+import { ThemeProvider, useAppTheme } from './src/context/ThemeContext';
+import AppNavigator from './src/navigation/AppNavigator';
 
-const Stack = createNativeStackNavigator();
+// NavigationContainer needs the theme *inside* ThemeProvider so it can read colors
+function ThemedNavigationContainer({ children }) {
+  const { colors, isDark } = useAppTheme();
+  return (
+    <NavigationContainer
+      theme={{
+        dark: isDark,
+        colors: {
+          primary: colors.primary,
+          background: colors.background,
+          card: colors.surface,
+          text: colors.textPrimary,
+          border: colors.border,
+          notification: '#D32F2F',
+        },
+      }}
+    >
+      {children}
+    </NavigationContainer>
+  );
+}
 
 export default function App() {
   return (
-    <SafeAreaProvider>
-      <NavigationContainer>
-        <Stack.Navigator
-          screenOptions={{
-            headerShown: false,
-            contentStyle: { backgroundColor: colors.background },
-            animation: 'slide_from_right',
-          }}
-        >
-          <Stack.Screen name="JobFeed" component={JobFeedScreen} />
-          <Stack.Screen name="JobDetail" component={JobDetailScreen} />
-        </Stack.Navigator>
-      </NavigationContainer>
-    </SafeAreaProvider>
+    <ThemeProvider>
+      <SafeAreaProvider>
+        <ThemedNavigationContainer>
+          <AppNavigator />
+        </ThemedNavigationContainer>
+      </SafeAreaProvider>
+    </ThemeProvider>
   );
 }

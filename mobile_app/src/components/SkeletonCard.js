@@ -1,8 +1,9 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Animated, StyleSheet } from 'react-native';
-import { colors, spacing, radius } from '../theme';
+import { useAppTheme } from '../context/ThemeContext';
 
 function SkeletonBox({ width, height, style }) {
+  const { colors } = useAppTheme();
   const opacity = useRef(new Animated.Value(0.4)).current;
 
   useEffect(() => {
@@ -19,7 +20,7 @@ function SkeletonBox({ width, height, style }) {
   return (
     <Animated.View
       style={[
-        { width, height, borderRadius: radius.sm, backgroundColor: colors.skeleton, opacity },
+        { width, height, borderRadius: 6, backgroundColor: colors.skeleton, opacity },
         style,
       ]}
     />
@@ -27,22 +28,24 @@ function SkeletonBox({ width, height, style }) {
 }
 
 export default function SkeletonCard() {
+  const { colors } = useAppTheme();
+
   return (
-    <View style={styles.card}>
+    <View style={[styles.card, { backgroundColor: colors.surface }]}>
       <View style={styles.header}>
-        <SkeletonBox width={44} height={44} style={{ borderRadius: radius.full }} />
-        <View style={{ flex: 1, marginLeft: spacing.sm, gap: 6 }}>
+        <SkeletonBox width={44} height={44} style={{ borderRadius: 999 }} />
+        <View style={{ flex: 1, marginLeft: 8, gap: 6 }}>
           <SkeletonBox width="70%" height={14} />
           <SkeletonBox width="45%" height={12} />
         </View>
-        <SkeletonBox width={64} height={22} style={{ borderRadius: radius.full }} />
+        <SkeletonBox width={64} height={22} style={{ borderRadius: 999 }} />
       </View>
-      <SkeletonBox width="90%" height={18} style={{ marginTop: spacing.md }} />
-      <SkeletonBox width="55%" height={13} style={{ marginTop: spacing.sm }} />
+      <SkeletonBox width="90%" height={18} style={{ marginTop: 16 }} />
+      <SkeletonBox width="55%" height={13} style={{ marginTop: 8 }} />
       <View style={styles.footer}>
-        <SkeletonBox width={70} height={24} style={{ borderRadius: radius.full }} />
-        <SkeletonBox width={70} height={24} style={{ borderRadius: radius.full }} />
-        <SkeletonBox width={70} height={24} style={{ borderRadius: radius.full }} />
+        <SkeletonBox width={70} height={24} style={{ borderRadius: 999 }} />
+        <SkeletonBox width={70} height={24} style={{ borderRadius: 999 }} />
+        <SkeletonBox width={70} height={24} style={{ borderRadius: 999 }} />
       </View>
     </View>
   );
@@ -50,24 +53,16 @@ export default function SkeletonCard() {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    padding: spacing.md,
-    marginHorizontal: spacing.md,
-    marginBottom: spacing.sm,
+    borderRadius: 12,
+    padding: 16,
+    marginHorizontal: 16,
+    marginBottom: 8,
     shadowColor: '#000',
     shadowOpacity: 0.05,
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 6,
     elevation: 2,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  footer: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-    marginTop: spacing.md,
-  },
+  header: { flexDirection: 'row', alignItems: 'center' },
+  footer: { flexDirection: 'row', gap: 8, marginTop: 16 },
 });
