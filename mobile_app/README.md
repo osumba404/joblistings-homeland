@@ -1,4 +1,4 @@
-# Homeland Jobs – Mobile App (Q28)
+# Homeland Jobs – Mobile App
 
 React Native / Expo implementation of the Homeland Jobs feed screen.
 
@@ -37,16 +37,16 @@ mobile_app/
         └── JobDetailScreen.js    # Screen 2 – job detail + Apply CTA
 ```
 
-### Key decisions
+### Key Features
 
-**State management — local only**
+**State management - local only**
 All state lives in `JobFeedScreen` via `useState`/`useMemo`. No Redux or Context needed for a two-screen app. The filter sheet receives its current values as props and calls `onApply` — one-way data flow.
 
-**Search — `useMemo` filter, no debounce needed**
+**Search - `useMemo` filter, no debounce needed**
 Because filtering is purely in-memory over 15 items, `useMemo` recomputes on every keystroke with no perceptible lag. On a real dataset (1 000+ items) I would add a 200 ms `useCallback`-debounced dispatch instead.
 
 **Skeleton loading**
-`SkeletonCard` uses `Animated.loop` + `Animated.sequence` for a pulsing opacity shimmer — no third-party library. Five skeletons render during the simulated 1.5 s initial load, then swap out for the real `FlatList`.
+`SkeletonCard` uses `Animated.loop` + `Animated.sequence` for a pulsing opacity shimmer - no third-party library. Five skeletons render during the simulated 1.5 s initial load, then swap out for the real `FlatList`.
 
 **Pull-to-refresh**
 `RefreshControl` triggers a `setTimeout` of 1 500 ms. In production this would call the API and replace state; here it bumps a `seedCounter` so `keyExtractor` produces new keys and React re-renders all cards (simulating new data arriving).
@@ -69,11 +69,11 @@ Each employer name is hashed to a consistent HSL hue — same employer always ge
 
 | Feature | Status |
 |---|---|
-| FlatList with 15 job cards | ✅ |
-| Job card: title, employer avatar initial, coloured category chip, budget, location, posted date, skill tags | ✅ |
-| Pull-to-refresh (1.5 s simulated) | ✅ |
-| Real-time search bar (local filter, no API) | ✅ |
-| Bottom sheet filter panel (FAB → category + location pickers → Apply / Reset) | ✅ |
-| Skeleton loading on initial load | ✅ |
-| Tap card → Job Detail screen | ✅ |
-| Job Detail screen with full mock content + Apply CTA | ✅ |
+| FlatList with 15 job cards | Complete! |
+| Job card: title, employer avatar initial, coloured category chip, budget, location, posted date, skill tags | Complete! |
+| Pull-to-refresh (1.5 s simulated) | Complete! |
+| Real-time search bar (local filter, no API) | Complete! |
+| Bottom sheet filter panel (FAB → category + location pickers → Apply / Reset) | Complete! |
+| Skeleton loading on initial load | Complete! |
+| Tap card → Job Detail screen | Complete! |
+| Job Detail screen with full mock content + Apply CTA | Complete! |

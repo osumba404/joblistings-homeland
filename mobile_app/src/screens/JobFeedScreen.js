@@ -10,7 +10,6 @@ import {
   RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import JobCard from '../components/JobCard';
 import SkeletonCard from '../components/SkeletonCard';
 import FilterBottomSheet from '../components/FilterBottomSheet';
@@ -99,7 +98,6 @@ export default function JobFeedScreen({ navigation }) {
   );
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaView style={[styles.safe, { backgroundColor: colors.primary }]} edges={['top']}>
         <StatusBar barStyle="light-content" backgroundColor={colors.primary} />
 
@@ -178,7 +176,6 @@ export default function JobFeedScreen({ navigation }) {
           onApply={handleFilterApply}
         />
       </SafeAreaView>
-    </GestureHandlerRootView>
   );
 }
 

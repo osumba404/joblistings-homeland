@@ -1,15 +1,32 @@
+/**
+ * FilterBottomSheet — pure React Native implementation.
+ * Uses Modal + Animated.timing for the slide-up sheet.
+ * No react-native-reanimated or @gorhom/bottom-sheet required.
+ */
 import React, {
-  useCallback,
-  useMemo,
-  useRef,
   forwardRef,
   useImperativeHandle,
   useState,
+  useRef,
+  useCallback,
+  useEffect,
 } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
-import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
+import {
+  Modal,
+  View,
+  Text,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  ScrollView,
+  Animated,
+  Dimensions,
+  StyleSheet,
+} from 'react-native';
 import { useAppTheme } from '../context/ThemeContext';
 import { CATEGORIES, LOCATIONS } from '../data/jobs';
+
+const SCREEN_HEIGHT = Dimensions.get('window').height;
+const SHEET_HEIGHT = SCREEN_HEIGHT * 0.65;
 
 function OptionPill({ label, selected, onPress, colors }) {
   return (
@@ -22,7 +39,13 @@ function OptionPill({ label, selected, onPress, colors }) {
       ]}
       activeOpacity={0.75}
     >
-      <Text style={[styles.pillText, { color: colors.textSecondary }, selected && { color: '#fff', fontWeight: '600' }]}>
+      <Text
+        style={[
+          styles.pillText,
+          { color: colors.textSecondary },
+          selected && { color: '#fff', fontWeight: '600' },
+        ]}
+      >
         {label}
       </Text>
     </TouchableOpacity>
@@ -34,60 +57,134 @@ const FilterBottomSheet = forwardRef(function FilterBottomSheet(
   ref
 ) {
   const { colors } = useAppTheme();
-  const bottomSheetRef = useRef(null);
-  const snapPoints = useMemo(() => ['60%', '85%'], []);
+  const [visible, setVisible] = useState(false);
   const [localCategory, setLocalCategory] = useState(selectedCategory);
   const [localLocation, setLocalLocation] = useState(selectedLocation);
+  const slideAnim = useRef(new Animated.Value(SHEET_HEIGHT)).current;
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+
+  const slideIn = useCallback(() => {
+    Animated.parallel([
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [slideAnim, fadeAnim]);
+
+  const slideOut = useCallback((onDone) => {
+    Animated.parallel([
+      Animated.timing(slideAnim, {
+        toValue: SHEET_HEIGHT,
+        duration: 250,
+        useNativeDriver: true,
+      }),
+      Animated.timing(fadeAnim, {
+        toValue: 0,
+        duration: 250,
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      setVisible(false);
+      if (onDone) onDone();
+    });
+  }, [slideAnim, fadeAnim]);
 
   useImperativeHandle(ref, () => ({
     open() {
       setLocalCategory(selectedCategory);
       setLocalLocation(selectedLocation);
-      bottomSheetRef.current?.snapToIndex(0);
+      slideAnim.setValue(SHEET_HEIGHT);
+      fadeAnim.setValue(0);
+      setVisible(true);
     },
     close() {
-      bottomSheetRef.current?.close();
+      slideOut();
     },
   }));
 
+  useEffect(() => {
+    if (visible) slideIn();
+  }, [visible, slideIn]);
+
   const handleApply = useCallback(() => {
-    onApply({ category: localCategory, location: localLocation });
-    bottomSheetRef.current?.close();
-  }, [localCategory, localLocation, onApply]);
+    slideOut(() => onApply({ category: localCategory, location: localLocation }));
+  }, [localCategory, localLocation, onApply, slideOut]);
 
   const handleReset = useCallback(() => {
-    setLocalCategory('All');
-    setLocalLocation('All');
-    onApply({ category: 'All', location: 'All' });
-    bottomSheetRef.current?.close();
-  }, [onApply]);
+    slideOut(() => {
+      setLocalCategory('All');
+      setLocalLocation('All');
+      onApply({ category: 'All', location: 'All' });
+    });
+  }, [onApply, slideOut]);
+
+  const handleBackdropPress = useCallback(() => slideOut(), [slideOut]);
 
   return (
-    <BottomSheet
-      ref={bottomSheetRef}
-      index={-1}
-      snapPoints={snapPoints}
-      enablePanDownToClose
-      backgroundStyle={{ backgroundColor: colors.surface, borderTopLeftRadius: 20, borderTopRightRadius: 20 }}
-      handleIndicatorStyle={{ backgroundColor: colors.border, width: 40 }}
+    <Modal
+      visible={visible}
+      transparent
+      animationType="none"
+      onRequestClose={() => slideOut()}
+      statusBarTranslucent
     >
-      <BottomSheetView style={styles.content}>
+      {/* Backdrop */}
+      <TouchableWithoutFeedback onPress={handleBackdropPress}>
+        <Animated.View style={[styles.backdrop, { opacity: fadeAnim }]} />
+      </TouchableWithoutFeedback>
+
+      {/* Sheet */}
+      <Animated.View
+        style={[
+          styles.sheet,
+          { backgroundColor: colors.surface, transform: [{ translateY: slideAnim }] },
+        ]}
+      >
+        {/* Handle */}
+        <View style={[styles.handle, { backgroundColor: colors.border }]} />
+
         <Text style={[styles.title, { color: colors.textPrimary }]}>Filter Jobs</Text>
 
+        {/* Category */}
         <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>Category</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.pillRow}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.pillRow}
+        >
           {CATEGORIES.map((cat) => (
-            <OptionPill key={cat} label={cat} selected={localCategory === cat} onPress={setLocalCategory} colors={colors} />
+            <OptionPill
+              key={cat}
+              label={cat}
+              selected={localCategory === cat}
+              onPress={setLocalCategory}
+              colors={colors}
+            />
           ))}
         </ScrollView>
 
+        {/* Location */}
         <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>Location</Text>
         <View style={styles.locationGrid}>
           {LOCATIONS.map((loc) => (
-            <OptionPill key={loc} label={loc} selected={localLocation === loc} onPress={setLocalLocation} colors={colors} />
+            <OptionPill
+              key={loc}
+              label={loc}
+              selected={localLocation === loc}
+              onPress={setLocalLocation}
+              colors={colors}
+            />
           ))}
         </View>
 
+        {/* Actions */}
         <View style={styles.actions}>
           <TouchableOpacity
             style={[styles.resetBtn, { borderColor: colors.border }]}
@@ -102,16 +199,42 @@ const FilterBottomSheet = forwardRef(function FilterBottomSheet(
             <Text style={styles.applyText}>Apply Filters</Text>
           </TouchableOpacity>
         </View>
-      </BottomSheetView>
-    </BottomSheet>
+      </Animated.View>
+    </Modal>
   );
 });
 
 export default FilterBottomSheet;
 
 const styles = StyleSheet.create({
-  content: { flex: 1, paddingHorizontal: 16, paddingBottom: 32 },
-  title: { fontSize: 18, fontWeight: '700', marginBottom: 16, marginTop: 4 },
+  backdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+  },
+  sheet: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: SHEET_HEIGHT,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingHorizontal: 16,
+    paddingBottom: 32,
+    paddingTop: 8,
+  },
+  handle: {
+    width: 40,
+    height: 4,
+    borderRadius: 999,
+    alignSelf: 'center',
+    marginBottom: 16,
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: 16,
+  },
   sectionLabel: {
     fontSize: 13,
     fontWeight: '600',
@@ -120,16 +243,31 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     marginTop: 16,
   },
-  pillRow: { flexDirection: 'row', gap: 8, paddingBottom: 4 },
-  locationGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  pillRow: {
+    flexDirection: 'row',
+    gap: 8,
+    paddingBottom: 4,
+  },
+  locationGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
   pill: {
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 999,
     borderWidth: 1.5,
   },
-  pillText: { fontSize: 13, fontWeight: '500' },
-  actions: { flexDirection: 'row', gap: 16, marginTop: 32 },
+  pillText: {
+    fontSize: 13,
+    fontWeight: '500',
+  },
+  actions: {
+    flexDirection: 'row',
+    gap: 16,
+    marginTop: 24,
+  },
   resetBtn: {
     flex: 1,
     paddingVertical: 14,
@@ -137,12 +275,19 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     alignItems: 'center',
   },
-  resetText: { fontSize: 15, fontWeight: '600' },
+  resetText: {
+    fontSize: 15,
+    fontWeight: '600',
+  },
   applyBtn: {
     flex: 2,
     paddingVertical: 14,
     borderRadius: 12,
     alignItems: 'center',
   },
-  applyText: { fontSize: 15, color: '#fff', fontWeight: '600' },
+  applyText: {
+    fontSize: 15,
+    color: '#fff',
+    fontWeight: '600',
+  },
 });
