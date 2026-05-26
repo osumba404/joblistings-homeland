@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -10,7 +10,9 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { CATEGORY_COLORS } from '../data/jobs';
 import { colors, spacing, radius, font } from '../theme';
+import PaymentModal from '../components/PaymentModal';
 
+// ─── helpers ────────────────────────────────────────────────────────────────
 function AvatarInitial({ name }) {
   const initial = name ? name.charAt(0).toUpperCase() : '?';
   const hue = name
@@ -35,15 +37,48 @@ function InfoRow({ icon, label, value }) {
   );
 }
 
+// ─── EscrowBanner – shown once payment succeeds ──────────────────────────────
+function EscrowBanner({ receipt }) {
+  return (
+    <View style={styles.escrowBanner}>
+      <View style={styles.escrowBannerLeft}>
+        <Text style={styles.escrowBannerIcon}>🔒</Text>
+        <View>
+          <Text style={styles.escrowBannerTitle}>Escrow Funded</Text>
+          <Text style={styles.escrowBannerReceipt}>Receipt: {receipt}</Text>
+        </View>
+      </View>
+      <View style={styles.escrowBadge}>
+        <Text style={styles.escrowBadgeText}>PAID</Text>
+      </View>
+    </View>
+  );
+}
+
+// ─── screen ──────────────────────────────────────────────────────────────────
 export default function JobDetailScreen({ route, navigation }) {
   const { job } = route.params;
   const palette = CATEGORY_COLORS[job.category] ?? { bg: '#EEEEEE', text: '#424242' };
+
+  // Payment state — persists across modal open/close while screen is mounted
+  const [modalVisible, setModalVisible] = useState(false);
+  const [escrowFunded, setEscrowFunded] = useState(false);
+  const [receiptNumber, setReceiptNumber] = useState('');
+
+  const handlePaymentSuccess = useCallback((receipt) => {
+    setEscrowFunded(true);
+    setReceiptNumber(receipt);
+  }, []);
+
+  const handleModalClose = useCallback(() => {
+    setModalVisible(false);
+  }, []);
 
   return (
     <SafeAreaView style={styles.safe} edges={['bottom']}>
       <StatusBar barStyle="light-content" backgroundColor={colors.primary} />
 
-      {/* Hero */}
+      {/* ── Hero ───────────────────────────────────────────────── */}
       <View style={styles.hero}>
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
           <Text style={styles.backText}>← Back</Text>
@@ -56,12 +91,16 @@ export default function JobDetailScreen({ route, navigation }) {
         </View>
       </View>
 
+      {/* ── Escrow funded banner (persists in state) ────────────── */}
+      {escrowFunded && <EscrowBanner receipt={receiptNumber} />}
+
+      {/* ── Body scroll ────────────────────────────────────────── */}
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Key info */}
+        {/* Key info grid */}
         <View style={styles.infoGrid}>
           <InfoRow icon="💰" label="Budget" value={job.budget} />
           <InfoRow icon="📍" label="Location" value={job.location} />
@@ -111,25 +150,54 @@ export default function JobDetailScreen({ route, navigation }) {
         <View style={{ height: spacing.xl }} />
       </ScrollView>
 
-      {/* Apply CTA */}
+      {/* ── Footer CTA ─────────────────────────────────────────── */}
       <View style={styles.footer}>
         <View style={styles.footerMeta}>
           <Text style={styles.footerBudget}>{job.budget}</Text>
           <Text style={styles.footerLocation}>{job.location}</Text>
         </View>
-        <TouchableOpacity style={styles.applyBtn} activeOpacity={0.85}>
-          <Text style={styles.applyText}>Apply Now</Text>
-        </TouchableOpacity>
+
+        <View style={styles.footerBtns}>
+          <TouchableOpacity style={styles.applyBtn} activeOpacity={0.85}>
+            <Text style={styles.applyText}>Apply Now</Text>
+          </TouchableOpacity>
+
+          {/* Fund Escrow button — disabled & shows receipt when already funded */}
+          {escrowFunded ? (
+            <View style={styles.fundedBtn}>
+              <Text style={styles.fundedBtnText}>🔒 Funded</Text>
+            </View>
+          ) : (
+            <TouchableOpacity
+              style={styles.escrowBtn}
+              activeOpacity={0.85}
+              onPress={() => setModalVisible(true)}
+            >
+              <Text style={styles.escrowBtnText}>Fund Escrow</Text>
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
+
+      {/* ── Payment Modal ───────────────────────────────────────── */}
+      <PaymentModal
+        visible={modalVisible}
+        job={job}
+        onClose={handleModalClose}
+        onSuccess={handlePaymentSuccess}
+      />
     </SafeAreaView>
   );
 }
 
+// ─── styles ──────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
     backgroundColor: colors.background,
   },
+
+  // hero
   hero: {
     backgroundColor: colors.primary,
     paddingHorizontal: spacing.md,
@@ -184,8 +252,54 @@ const styles = StyleSheet.create({
     fontSize: 12,
     ...font.semibold,
   },
+
+  // escrow funded banner
+  escrowBanner: {
+    backgroundColor: '#E8F5E9',
+    borderBottomWidth: 1,
+    borderBottomColor: '#C8E6C9',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  escrowBannerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  escrowBannerIcon: {
+    fontSize: 20,
+  },
+  escrowBannerTitle: {
+    fontSize: 13,
+    color: '#2E7D32',
+    ...font.bold,
+  },
+  escrowBannerReceipt: {
+    fontSize: 11,
+    color: '#558B2F',
+    ...font.medium,
+    letterSpacing: 0.5,
+  },
+  escrowBadge: {
+    backgroundColor: '#2E7D32',
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 3,
+    borderRadius: radius.full,
+  },
+  escrowBadgeText: {
+    color: '#fff',
+    fontSize: 10,
+    ...font.bold,
+    letterSpacing: 1,
+  },
+
+  // scroll body
   scroll: { flex: 1 },
   scrollContent: { padding: spacing.md },
+
   infoGrid: {
     backgroundColor: colors.surface,
     borderRadius: radius.md,
@@ -264,6 +378,8 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     lineHeight: 21,
   },
+
+  // footer
   footer: {
     backgroundColor: colors.surface,
     paddingHorizontal: spacing.md,
@@ -277,6 +393,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: -2 },
     shadowRadius: 8,
     elevation: 8,
+    gap: spacing.sm,
   },
   footerMeta: { flex: 1 },
   footerBudget: {
@@ -289,15 +406,43 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
     marginTop: 2,
   },
+  footerBtns: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
   applyBtn: {
     backgroundColor: colors.primary,
-    paddingHorizontal: spacing.lg,
+    paddingHorizontal: spacing.md,
     paddingVertical: spacing.md,
     borderRadius: radius.md,
   },
   applyText: {
     color: '#fff',
-    fontSize: 15,
+    fontSize: 14,
+    ...font.bold,
+  },
+  escrowBtn: {
+    backgroundColor: colors.accent,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.md,
+    borderRadius: radius.md,
+  },
+  escrowBtnText: {
+    color: '#333',
+    fontSize: 14,
+    ...font.bold,
+  },
+  fundedBtn: {
+    backgroundColor: '#E8F5E9',
+    borderWidth: 1.5,
+    borderColor: '#A5D6A7',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.md,
+    borderRadius: radius.md,
+  },
+  fundedBtnText: {
+    color: '#2E7D32',
+    fontSize: 14,
     ...font.bold,
   },
 });
