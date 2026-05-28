@@ -5,7 +5,8 @@ const reviewsRouter = require('./routes/reviews');
 const app = express();
 
 app.use(express.json());
-app.use('/api', reviewsRouter);
+app.use('/api/reviews', reviewsRouter);
+app.use('/api/freelancers', reviewsRouter);
 
 app.use((err, req, res, next) => {
   console.error(err);

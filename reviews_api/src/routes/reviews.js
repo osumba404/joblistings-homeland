@@ -24,8 +24,8 @@ router.post('/', requireAuth, validateReview, async (req, res, next) => {
     conn = await pool.getConnection();
 
     const [contracts] = await conn.execute(
-      'SELECT id FROM contracts WHERE id = ? AND client_id = ? AND freelancer_id = ? AND status = ?',
-      [contractId, clientId, freelancerId, 'approved']
+      'SELECT id FROM contracts WHERE id = ? AND employer_id = ? AND freelancer_id = ?',
+      [contractId, clientId, freelancerId]
     );
     if (contracts.length === 0) {
       conn.release();
@@ -79,7 +79,7 @@ router.post('/', requireAuth, validateReview, async (req, res, next) => {
   }
 });
 
-router.get('/freelancers/:id/reviews', async (req, res, next) => {
+router.get('/:id/reviews', async (req, res, next) => {
   const freelancerId = parseInt(req.params.id);
   if (!Number.isInteger(freelancerId) || freelancerId <= 0) {
     return res.status(400).json({ error: 'Freelancer id must be a positive integer' });
